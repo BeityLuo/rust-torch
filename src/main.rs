@@ -65,32 +65,65 @@ fn label_to_onehot(labels: &Array1<u8>) -> Array2<u8> {
     return onehot;
 }
 
+/// Returns the indices of the maximum values along an axis.
+fn argmax(a: &ArrayView2<f64>) -> Array1<usize> {
+    let mut ret = Array1::zeros(a.shape()[0]);
+    for (i, s) in a.rows().into_iter().enumerate() {
+        (ret[i], _) = s.iter()
+                       .enumerate()
+                       .max_by(|x, y| x.1.partial_cmp(y.1).unwrap())
+                       .unwrap();
+    }
+    return ret;
+}
+
+/// Compare a probability distribution result and label, return correct num.
+// fn compare_results(result: &ArrayView2<f64>, label: &ArrayView1<u8>) -> usize {
+//     assert_eq!(result.shape()[0], label.shape()[0]);
+//     let max_index = argmax(result);
+//     let max_index = max_index.mapv(|x| x as u8);
+    
+//     // compare every element and count for 'true'.
+//     // Not for sure this is faster than just for-loop, just looks very cool!
+//     return label.iter()
+//                 .zip(max_index.iter())
+//                 .map(|(&x, &y)| x == y)
+//                 .collect::<Array1<bool>>()
+//                 .iter()
+//                 .filter(|&&x| x)
+//                 .count()
+// }
+
+/// Compare a probability distribution result and label, return correct num.
+fn compare_results(result: &ArrayView2<f64>, label: &ArrayView2<f64>) -> usize {
+    assert_eq!(result.shape()[0], label.shape()[0]);
+    let max_index = argmax(result);
+    let label_index = argmax(label);
+    
+    // compare every element and count for 'true'.
+    // Not for sure this is faster than just for-loop, just looks very cool!
+    return label_index.iter()
+                      .zip(max_index.iter())
+                      .map(|(&x, &y)| x == y)
+                      .collect::<Array1<bool>>()
+                      .iter()
+                      .filter(|&&x| x)
+                      .count()
+}
+
 fn test_func() {
-    let mut sig = layers::Sigmoid::init(1, 1);
-    let result = sig.forward(&array![[1.0]].view());
-    println!("result = {}", result);
-    let result = sig.backward(&array![[1.0]].view());
-    println!("result = {}", result);
-
-    let mut module = layers::Linear::init(10, 10);
-    println!("w = {}", module.w);
-
-    // let mut linear = layers::Linear { 
-    //     w: array![[1.0f64, 1.0], [2.0, 2.0]],
-    //     b: array![1.0f64, 2.0],
-    //     input: None,
-    //     w_grad: None,
-    //     b_grad: None };
-    // let result = linear.forward(&array![[1.0, 1.0]].view());
-    // println!("result = {}", result);
-    // let result = linear.backward(&array![[1.0, 1.0]].view());
-    // println!("result = {}", result);
+    let a = array![[1.0, -1.0, 2.0], [3.0, 6.0, 5.0], [6.0, 3.0, 3.0]];
+    // println!("{}", argmax(&array![[3.0, 2.0, 1.0]].view()));
+    // let b = array![[1.0, -1.0, 2.0], [3.0, 4.0, 6.0]];
+    let b = array![2, 1, 0];
 }
 
 
 fn main() {
     // test_func();
     // return;
+
+    
     let (imgs, labels) = mnist::get_train_set();
     let num = imgs.shape()[0];
     let imgs = imgs.map(|v| *v as f64)
@@ -102,7 +135,8 @@ fn main() {
     let mut module = DNN::init(28*28, 10);
 
     for i in 0..100 {
-        let mut cnt = 0;
+        let mut i = 0;
+        let mut correct_cnt = 0;
         let mut total_loss = 0.0;
         while let Some(data) = loader.next() {
             let (img, label) = data;
@@ -111,20 +145,23 @@ fn main() {
             // println!("label  = {}", &label);
             // println!("result = {}", &result);
             let loss = loss(&result.view(), &label);
-            let grad = (result - label);
+            let grad = (&result - &label);
             // println!("grad   = {}", &grad);
             let grad = module.backward(&grad.view());
             // println!("grad   = {}", &grad);
             module.step(0.1);
-    
+            
+            correct_cnt += compare_results(&result.view(), &label);
             total_loss += loss;
-            cnt += 1;
-            if cnt % 200 == 0 {
-                println!("cnt = {}", cnt);
+            i += 1;
+            if i % 200 == 0 {
+                println!("i = {}", i);
             }
         }
         loader.reset();
-        println!("epoch {}: total loss is {}", i, total_loss);
+
+        println!("epoch {}: total loss is {}, train accuracy is {}%",
+                 i, total_loss, correct_cnt as f64 / num as f64);
     }
     
 }
