@@ -14,9 +14,9 @@ impl<D> Sigmoid<D> where D: Dimension {
         return x.map(|e| 1.0 / (1.0 + (-1.0 * e).exp()));
     }
 
-    pub fn backward(&mut self, output_grad: &ArrayView<f64, D>) -> Array<f64, D> {
+    pub fn backward(&mut self, grad: &ArrayView<f64, D>) -> Array<f64, D> {
         let e: Array<f64, D> = self.input.as_ref().unwrap().map(|x| (-x)).exp();
-        return output_grad * e.map(|e| e / ((1.0 + e) * (1.0 + e)));
+        return grad * e.map(|e| e / ((1.0 + e) * (1.0 + e)));
     }
 
     pub fn step(&mut self, _lr: f64) { }
