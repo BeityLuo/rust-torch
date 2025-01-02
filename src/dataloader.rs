@@ -72,4 +72,8 @@ where
         self.iter_idx += step;
         return Some((imgs, labels));
     }
+
+    pub fn shuffle(&mut self) {
+        todo!();
+    }
 }
