@@ -8,4 +8,4 @@ rust-torch is a simple deep-learning framework implemented by rust.
 
 3rd goal: implement transformer.
 
-4th goal: usding transformer to do translation or some simple NLP problem.
+4th goal: using transformer to do translation or some simple NLP problem.

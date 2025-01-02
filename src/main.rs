@@ -5,46 +5,59 @@ use std::{array, result, vec};
 use dataloader::DataLoader;
 use ndarray::{Array1, Array2, ArrayView2};
 use ndarray::prelude::*;
-use layer::Propagable;
+use layer::{Linear, Sigmoid};
 struct DNN {
-    layers: Vec<Box<dyn layer::Propagable>>,
+    l1: Linear,
+    a1: Sigmoid<Ix2>,
+    l2: Linear,
+    a2: Sigmoid<Ix2>,
+    l3: Linear,
+    a3: Sigmoid<Ix2>,
 }
 
-impl layer::Propagable for DNN {
-    fn init(in_dim: usize, out_dim: usize) -> Self {
+impl DNN {
+    pub fn init(in_dim: usize, out_dim: usize) -> Self {
         const HIDDEN1: usize = 64;
         const HIDDEN2: usize = 64;
-        return DNN { layers: vec![
-            Box::new(layer::Linear::init(in_dim, HIDDEN1)),
-            Box::new(layer::Sigmoid::init(HIDDEN1, HIDDEN1)),
-            Box::new(layer::Linear::init(HIDDEN1, HIDDEN2)),
-            Box::new(layer::Sigmoid::init(HIDDEN2, HIDDEN2)),
-            Box::new(layer::Linear::init(HIDDEN2, out_dim)),
-            Box::new(layer::Sigmoid::init(out_dim, out_dim)),
-        ] }
+        return DNN { 
+            l1: Linear::init(in_dim, HIDDEN1),
+            a1: Sigmoid::init(HIDDEN1, HIDDEN1),
+            l2: Linear::init(HIDDEN1, HIDDEN2),
+            a2: Sigmoid::init(HIDDEN2, HIDDEN2),
+            l3: Linear::init(HIDDEN2, out_dim),
+            a3: Sigmoid::init(out_dim, out_dim),
+        }
     }
 
-    fn forward(&mut self, x: &ArrayView2<f64>) -> Array2<f64> {
+    pub fn forward(&mut self, x: &ArrayView2<f64>) -> Array2<f64> {
         let mut temp = x.to_owned();
-        for l in &mut self.layers {
-            temp = l.forward(&temp.view());
-        }
+        temp = self.l1.forward(&temp.view());
+        temp = self.a1.forward(&temp.view());
+        temp = self.l2.forward(&temp.view());
+        temp = self.a2.forward(&temp.view());
+        temp = self.l3.forward(&temp.view());
+        temp = self.a3.forward(&temp.view());
         return temp;
     }
 
-    fn backward(&mut self, output_grad: &ArrayView2<f64>) -> Array2<f64> {
+    pub fn backward(&mut self, output_grad: &ArrayView2<f64>) -> Array2<f64> {
         let mut temp = output_grad.to_owned();
-        for l in &mut self.layers.iter_mut().rev(){
-            temp = l.backward(&temp.view());
-            // println!("temp = {}", &temp);
-        }
+        temp = self.a3.backward(&temp.view());
+        temp = self.l3.backward(&temp.view());
+        temp = self.a2.backward(&temp.view());
+        temp = self.l2.backward(&temp.view());
+        temp = self.a1.backward(&temp.view());
+        temp = self.l1.backward(&temp.view());
         return temp;
     }
 
-    fn step(&mut self, lr: f64) {
-        for l in &mut self.layers {
-            l.step(lr);
-        }
+    pub fn step(&mut self, lr: f64) {
+        self.a3.step(lr);
+        self.l3.step(lr);
+        self.a2.step(lr);
+        self.l2.step(lr);
+        self.a1.step(lr);
+        self.l1.step(lr);
     }
 }
 
