@@ -2,16 +2,12 @@ use ndarray::{Array, Axis};
 use ndarray::{ Array1, Array2, ArrayView2 };
 use rand::prelude::*;
 use rand_distr::StandardNormal;
-pub trait Propagable {
-    fn init(in_dim: usize, out_dim: usize) -> Self where Self: Sized;
-    fn forward(&mut self, x: &ArrayView2<f64>) -> Array2<f64>;
-    fn backward(&mut self, output_grad: &ArrayView2<f64>) -> Array2<f64>;
-    fn step(&mut self, lr: f64);
-}
+
+use crate::layer::Propagable;
 
 pub struct Linear {
-    pub w: Array2<f64>,
-    pub b: Array1<f64>,
+    w: Array2<f64>,
+    b: Array1<f64>,
 
     input: Option<Array2<f64>>,
     w_grad: Option<Array2<f64>>,
@@ -56,27 +52,3 @@ impl Propagable for Linear {
         self.b = &self.b - self.b_grad.as_ref().unwrap() * lr;
     }   
 }
-
-pub struct Sigmoid {
-    input: Option<Array2<f64>>,
-}
-impl Propagable for Sigmoid {
-    fn init(_in_dim: usize, _out_dim: usize) -> Self {
-        assert_eq!(_in_dim, _out_dim);
-        return Sigmoid { input: None };
-    }
-
-    fn forward(&mut self, x: &ArrayView2<f64>) -> Array2<f64> {
-        self.input = Some(x.to_owned());
-        return x.map(|e| 1.0 / (1.0 + (-1.0 * e).exp()));
-    }
-
-    fn backward(&mut self, output_grad: &ArrayView2<f64>) -> Array2<f64> {
-        let e: Array2<f64> = self.input.as_ref().unwrap()
-                             .map(|x| (-x)).exp();
-        return output_grad * e.map(|e| e / ((1.0 + e) * (1.0 + e)));
-    }
-
-    fn step(&mut self, _lr: f64) { }
-}
-
