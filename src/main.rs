@@ -5,13 +5,13 @@ use std::{array, result, vec};
 use dataloader::DataLoader;
 use ndarray::{Array1, Array2, ArrayView2};
 use ndarray::prelude::*;
-use layer::{Linear, Sigmoid};
+use layer::{Linear2, Sigmoid};
 struct DNN {
-    l1: Linear,
+    l1: Linear2,
     a1: Sigmoid<Ix2>,
-    l2: Linear,
+    l2: Linear2,
     a2: Sigmoid<Ix2>,
-    l3: Linear,
+    l3: Linear2,
     a3: Sigmoid<Ix2>,
 }
 
@@ -20,12 +20,12 @@ impl DNN {
         const HIDDEN1: usize = 64;
         const HIDDEN2: usize = 64;
         return DNN { 
-            l1: Linear::init(in_dim, HIDDEN1),
-            a1: Sigmoid::init(HIDDEN1, HIDDEN1),
-            l2: Linear::init(HIDDEN1, HIDDEN2),
-            a2: Sigmoid::init(HIDDEN2, HIDDEN2),
-            l3: Linear::init(HIDDEN2, out_dim),
-            a3: Sigmoid::init(out_dim, out_dim),
+            l1: Linear2::init(in_dim, HIDDEN1),
+            a1: Sigmoid::init(),
+            l2: Linear2::init(HIDDEN1, HIDDEN2),
+            a2: Sigmoid::init(),
+            l3: Linear2::init(HIDDEN2, out_dim),
+            a3: Sigmoid::init(),
         }
     }
 
@@ -52,11 +52,8 @@ impl DNN {
     }
 
     pub fn step(&mut self, lr: f64) {
-        self.a3.step(lr);
         self.l3.step(lr);
-        self.a2.step(lr);
         self.l2.step(lr);
-        self.a1.step(lr);
         self.l1.step(lr);
     }
 }
@@ -125,10 +122,9 @@ fn compare_results(result: &ArrayView2<f64>, label: &ArrayView2<f64>) -> usize {
 }
 
 fn test_func() {
-    let a = array![[1.0, -1.0, 2.0], [3.0, 6.0, 5.0], [6.0, 3.0, 3.0]];
-    // println!("{}", argmax(&array![[3.0, 2.0, 1.0]].view()));
-    // let b = array![[1.0, -1.0, 2.0], [3.0, 4.0, 6.0]];
-    let b = array![2, 1, 0];
+    let s1: Array2<f64> = array![[1.0, 1.0, 1.0]];
+    let s2: Array2<f64> = array![[1.0, 1.0, 1.0]];
+    let temp = s1.dot(&s2.t());
 }
 
 
