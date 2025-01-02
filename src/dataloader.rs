@@ -1,9 +1,5 @@
-use core::slice;
-use ndarray::s;
 use ndarray::Array;
 use ndarray::ArrayView;
-use ndarray::ArrayView1;
-use ndarray::ArrayView2;
 use ndarray::Axis;
 use ndarray::Dimension;
 use ndarray::Slice;

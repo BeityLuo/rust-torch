@@ -1,26 +1,26 @@
 mod mnist;
-mod layers;
+mod layer;
 mod dataloader;
 use std::{array, result, vec};
 use dataloader::DataLoader;
-use layers::Propagable;
-use ndarray::{Array1, Array2, ArrayView2, Ix1, Ix2, Ix3};
+use ndarray::{Array1, Array2, ArrayView2};
 use ndarray::prelude::*;
+use layer::Propagable;
 struct DNN {
-    layers: Vec<Box<dyn layers::Propagable>>,
+    layers: Vec<Box<dyn layer::Propagable>>,
 }
 
-impl layers::Propagable for DNN {
+impl layer::Propagable for DNN {
     fn init(in_dim: usize, out_dim: usize) -> Self {
         const HIDDEN1: usize = 64;
         const HIDDEN2: usize = 64;
         return DNN { layers: vec![
-            Box::new(layers::Linear::init(in_dim, HIDDEN1)),
-            Box::new(layers::Sigmoid::init(HIDDEN1, HIDDEN1)),
-            Box::new(layers::Linear::init(HIDDEN1, HIDDEN2)),
-            Box::new(layers::Sigmoid::init(HIDDEN2, HIDDEN2)),
-            Box::new(layers::Linear::init(HIDDEN2, out_dim)),
-            Box::new(layers::Sigmoid::init(out_dim, out_dim)),
+            Box::new(layer::Linear::init(in_dim, HIDDEN1)),
+            Box::new(layer::Sigmoid::init(HIDDEN1, HIDDEN1)),
+            Box::new(layer::Linear::init(HIDDEN1, HIDDEN2)),
+            Box::new(layer::Sigmoid::init(HIDDEN2, HIDDEN2)),
+            Box::new(layer::Linear::init(HIDDEN2, out_dim)),
+            Box::new(layer::Sigmoid::init(out_dim, out_dim)),
         ] }
     }
 
@@ -145,7 +145,7 @@ fn main() {
             // println!("label  = {}", &label);
             // println!("result = {}", &result);
             let loss = loss(&result.view(), &label);
-            let grad = (&result - &label);
+            let grad = &result - &label;
             // println!("grad   = {}", &grad);
             let grad = module.backward(&grad.view());
             // println!("grad   = {}", &grad);
