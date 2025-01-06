@@ -31,23 +31,23 @@ impl DNN {
 
     pub fn forward(&mut self, x: &ArrayView2<f64>) -> Array2<f64> {
         let mut temp = x.to_owned();
-        temp = self.l1.forward(&temp.view());
-        temp = self.a1.forward(&temp.view());
-        temp = self.l2.forward(&temp.view());
-        temp = self.a2.forward(&temp.view());
-        temp = self.l3.forward(&temp.view());
-        temp = self.a3.forward(&temp.view());
+        temp = self.l1.forward(temp.view());
+        temp = self.a1.forward(temp.view());
+        temp = self.l2.forward(temp.view());
+        temp = self.a2.forward(temp.view());
+        temp = self.l3.forward(temp.view());
+        temp = self.a3.forward(temp.view());
         return temp;
     }
 
     pub fn backward(&mut self, output_grad: &ArrayView2<f64>) -> Array2<f64> {
         let mut temp = output_grad.to_owned();
-        temp = self.a3.backward(&temp.view());
-        temp = self.l3.backward(&temp.view());
-        temp = self.a2.backward(&temp.view());
-        temp = self.l2.backward(&temp.view());
-        temp = self.a1.backward(&temp.view());
-        temp = self.l1.backward(&temp.view());
+        temp = self.a3.backward(temp.view());
+        temp = self.l3.backward(temp.view());
+        temp = self.a2.backward(temp.view());
+        temp = self.l2.backward(temp.view());
+        temp = self.a1.backward(temp.view());
+        temp = self.l1.backward(temp.view());
         return temp;
     }
 
@@ -122,15 +122,16 @@ fn compare_results(result: &ArrayView2<f64>, label: &ArrayView2<f64>) -> usize {
 }
 
 fn test_func() {
-    let s1: Array2<f64> = array![[1.0, 1.0, 1.0]];
-    let s2: Array2<f64> = array![[1.0, 1.0, 1.0]];
-    let temp = s1.dot(&s2.t());
+    let a = array![[1.0, 2.0], [3.0, 4.0]];
+    let b = array![[1.0, 2.0]];
+    // let b = norm.forward(&a.view());
+    println!("{:?}", a.dim().into_shape_with_order());
 }
 
 
 fn main() {
-    // test_func();
-    // return;
+    test_func();
+    return;
 
     
     let (imgs, labels) = mnist::get_train_set();

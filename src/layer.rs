@@ -1,5 +1,6 @@
 mod linear;
-mod activation;
+mod non_linear;
+mod transformer;
 
 pub use linear::Linear2;
-pub use activation::Sigmoid;
+pub use non_linear::{ Sigmoid, LayerNorm2 };
