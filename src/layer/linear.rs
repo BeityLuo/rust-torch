@@ -202,8 +202,8 @@ impl Add{
         return &a + &b;
     }
 
-    pub fn backward<D>(grad: ArrayView<f64, D>) -> Array<f64, D>
+    pub fn backward<D>(grad: ArrayView<f64, D>) -> (Array<f64, D>, Array<f64, D>)
     where D: Dimension {
-        return grad.to_owned();
+        return (grad.to_owned(), grad.to_owned());
     }
 }

@@ -130,8 +130,8 @@ fn test_func() {
 
 
 fn main() {
-    test_func();
-    return;
+    // test_func();
+    // return;
 
     
     let (imgs, labels) = mnist::get_train_set();
