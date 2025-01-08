@@ -29,7 +29,7 @@ impl DNN {
         }
     }
 
-    pub fn forward(&mut self, x: &ArrayView2<f64>) -> Array2<f64> {
+    pub fn forward(&mut self, x: ArrayView2<f64>) -> Array2<f64> {
         let mut temp = x.to_owned();
         temp = self.l1.forward(temp.view());
         temp = self.a1.forward(temp.view());
@@ -40,7 +40,7 @@ impl DNN {
         return temp;
     }
 
-    pub fn backward(&mut self, output_grad: &ArrayView2<f64>) -> Array2<f64> {
+    pub fn backward(&mut self, output_grad: ArrayView2<f64>) -> Array2<f64> {
         let mut temp = output_grad.to_owned();
         temp = self.a3.backward(temp.view());
         temp = self.l3.backward(temp.view());
@@ -58,12 +58,12 @@ impl DNN {
     }
 }
 
-fn loss(a: &ArrayView2<f64>, b: &ArrayView2<f64>) -> f64 {
-    let diff = a - b;
+fn loss(a: ArrayView2<f64>, b: ArrayView2<f64>) -> f64 {
+    let diff = &a - &b;
     return diff.mapv_into(|v| v * v).sum();
 }
 
-fn label_to_onehot(labels: &Array1<u8>) -> Array2<u8> {
+fn label_to_onehot(labels: ArrayView1<u8>) -> Array2<u8> {
     let min = *labels.iter().min().unwrap();
     let max = *labels.iter().max().unwrap();
     let mut onehot = Array2::zeros([labels.shape()[0],
@@ -76,7 +76,7 @@ fn label_to_onehot(labels: &Array1<u8>) -> Array2<u8> {
 }
 
 /// Returns the indices of the maximum values along an axis.
-fn argmax(a: &ArrayView2<f64>) -> Array1<usize> {
+fn argmax(a: ArrayView2<f64>) -> Array1<usize> {
     let mut ret = Array1::zeros(a.shape()[0]);
     for (i, s) in a.rows().into_iter().enumerate() {
         (ret[i], _) = s.iter()
@@ -105,7 +105,7 @@ fn argmax(a: &ArrayView2<f64>) -> Array1<usize> {
 // }
 
 /// Compare a probability distribution result and label, return correct num.
-fn compare_results(result: &ArrayView2<f64>, label: &ArrayView2<f64>) -> usize {
+fn compare_results(result: ArrayView2<f64>, label: ArrayView2<f64>) -> usize {
     assert_eq!(result.shape()[0], label.shape()[0]);
     let max_index = argmax(result);
     let label_index = argmax(label);
@@ -138,7 +138,7 @@ fn main() {
     let num = imgs.shape()[0];
     let imgs = imgs.map(|v| *v as f64)
                    .into_shape_with_order((num, 28*28)).unwrap();
-    let labels = label_to_onehot(&labels)
+    let labels = label_to_onehot(labels.view())
                  .map(|v| *v as f64);
     let mut loader = DataLoader::init((imgs, labels), 100, false).unwrap();
     
@@ -150,18 +150,14 @@ fn main() {
         let mut total_loss = 0.0;
         while let Some(data) = loader.next() {
             let (img, label) = data;
-            // println!("img.shape = {:?}, label.shape() = {:?}", img.shape(), label.shape());
-            let result = module.forward(&img.view());
-            // println!("label  = {}", &label);
-            // println!("result = {}", &result);
-            let loss = loss(&result.view(), &label);
+            let result = module.forward(img.view());
+
+            let loss = loss(result.view(), label.clone());
             let grad = &result - &label;
-            // println!("grad   = {}", &grad);
-            let grad = module.backward(&grad.view());
-            // println!("grad   = {}", &grad);
+            module.backward(grad.view());
             module.step(0.1);
             
-            correct_cnt += compare_results(&result.view(), &label);
+            correct_cnt += compare_results(result.view(), label);
             total_loss += loss;
             i += 1;
             if i % 200 == 0 {

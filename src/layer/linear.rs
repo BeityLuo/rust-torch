@@ -65,15 +65,15 @@ pub struct Linear2 {
 }
 
 impl Linear2 {
-    pub fn init(in_dim: usize, out_dim: usize) -> Self {
+    pub fn init(in_size: usize, out_size: usize) -> Self {
         let mut rng = thread_rng();
-        let v = (0..in_dim * out_dim)
+        let v = (0..in_size * out_size)
                 .map(|_| rng.sample(StandardNormal))
                 .collect::<Vec<f64>>();
-        let weights = Array::from_shape_vec((in_dim, out_dim), v).unwrap();
-        let weights = weights / (in_dim as f64).sqrt();
+        let weights = Array::from_shape_vec((in_size, out_size), v).unwrap();
+        let weights = weights / (in_size as f64).sqrt();
 
-        let v = (0..out_dim)
+        let v = (0..out_size)
                 .map(|_| rng.sample(StandardNormal))
                 .collect::<Vec<f64>>();
         let bias = Array::from_vec(v);
@@ -115,15 +115,15 @@ pub struct Linear3 {
 }
 
 impl Linear3 {
-    pub fn init(in_dim: usize, out_dim: usize) -> Self {
+    pub fn init(in_size: usize, out_size: usize) -> Self {
         let mut rng = thread_rng();
-        let v = (0..in_dim * out_dim)
+        let v = (0..in_size * out_size)
                           .map(|_| rng.sample(StandardNormal))
                           .collect::<Vec<f64>>();
-        let weights = Array::from_shape_vec((in_dim, out_dim), v).unwrap();
-        let weights = weights / (in_dim as f64).sqrt();
+        let weights = Array::from_shape_vec((in_size, out_size), v).unwrap();
+        let weights = weights / (in_size as f64).sqrt();
 
-        let v = (0..out_dim)
+        let v = (0..out_size)
                           .map(|_| rng.sample(StandardNormal))
                           .collect::<Vec<f64>>();
         let bias = Array::from_vec(v);
